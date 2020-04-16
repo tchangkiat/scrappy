@@ -3,6 +3,7 @@
 */
 const levelLimit = 1;
 const websites = ["http://localhost:3000"];
+const resultDirectory = "./results";
 
 const puppeteer = require("puppeteer");
 const $ = require("cheerio");
@@ -44,12 +45,11 @@ async function scrap(website) {
     return a.level - b.level;
   });
 
-  const fileName =
-    website
-      .replace("https://", "")
-      .replace("http://", "")
-      .replace("www.", "")
-      .replace(":", "-") + ".json";
+  const fileName = website
+    .replace("https://", "")
+    .replace("http://", "")
+    .replace("www.", "")
+    .replace(":", "-");
 
   /*fs.writeFile(
     fileName + ".json",
@@ -86,13 +86,21 @@ async function scrap(website) {
     }
   }
 
-  fs.writeFile(fileName + ".csv", csvContent, "utf8", function (err) {
-    if (err) {
-      return log(err, 4);
-    }
+  if (!fs.existsSync(resultDirectory)) {
+    fs.mkdirSync(resultDirectory);
+  }
+  fs.writeFile(
+    resultDirectory + "/" + fileName + ".csv",
+    csvContent,
+    "utf8",
+    function (err) {
+      if (err) {
+        return log(err, 4);
+      }
 
-    log("Result has been saved to " + fileName + ".csv");
-  });
+      log("Result has been saved to " + fileName + ".csv");
+    }
+  );
 
   await browser.close();
 
