@@ -1,15 +1,7 @@
-/*
-  Config
-*/
-const websites = ["http://localhost:3000"];
-const levelLimit = 1;
-const delayScrapPage = 1000;
-const delayScrapWebsite = 1000;
-const resultDirectory = "./results";
-
 const puppeteer = require("puppeteer");
 const $ = require("cheerio");
 const fs = require("fs");
+const config = require("./config.json");
 const month_names = [
   "Jan",
   "Feb",
@@ -24,11 +16,14 @@ const month_names = [
   "Nov",
   "Dec",
 ];
+const resultDirectory = "./results";
 
 (async () => {
-  for (var website of websites) {
-    await scrap(website);
-    await wait(delayScrapWebsite);
+  if (configCheck()) {
+    for (var website of config.websites) {
+      await scrap(website);
+      await wait(config.delayScrapWebsite);
+    }
   }
 })();
 
@@ -159,7 +154,7 @@ async function scrap(website) {
         level: level,
       });
 
-      if (levelLimit === -1 || level < levelLimit) {
+      if (config.levelLimit === -1 || level < config.levelLimit) {
         var links = [];
         $("a", content).each(function (index, value) {
           const link = $(value).attr("href");
@@ -179,7 +174,7 @@ async function scrap(website) {
 
         for (var link of links) {
           await scrapPage(link, level + 1);
-          await wait(delayScrapPage);
+          await wait(config.delayScrapPage);
         }
       }
 
@@ -202,6 +197,47 @@ async function scrap(website) {
       pageMemo.includes(link.substring(1, link.length))
     );
   }
+}
+
+function configCheck() {
+  const prefix = "Configuration Check failed: ";
+
+  if (!Number.isInteger(config.levelLimit)) {
+    log(prefix + "Level limit must be an Integer", 4);
+    return false;
+  }
+
+  if (config.levelLimit < -1) {
+    log(prefix + "Level limit must be greater than or equal to -1", 4);
+    return false;
+  }
+
+  if (config.websites.length < 1) {
+    log(prefix + "Please indicate at least one website", 4);
+    return false;
+  }
+
+  if (
+    !Number.isInteger(config.delayScrapPage) ||
+    !Number.isInteger(config.delayScrapWebsite)
+  ) {
+    log(
+      prefix + "delayScrapPage and/or delayScrapWebsite must be an Integer",
+      4
+    );
+    return false;
+  }
+
+  if (config.delayScrapPage < 1000 || config.delayScrapWebsite < 1000) {
+    log(
+      prefix +
+        "delayScrapPage and/or delayScrapWebsite must be greater than or equal to 1000",
+      4
+    );
+    return false;
+  }
+
+  return true;
 }
 
 function isExternalUrl(url, websiteq) {
