@@ -45,11 +45,16 @@ async function scrap(website) {
     return a.level - b.level;
   });
 
-  const fileName = website
-    .replace("https://", "")
-    .replace("http://", "")
-    .replace("www.", "")
-    .replace(":", "-");
+  const fileName =
+    website
+      .replace("https://", "")
+      .replace("http://", "")
+      .replace("www.", "")
+      .replace(":", "-") +
+    " - " +
+    getCurrentDate() +
+    " - " +
+    getCurrentTime().replace(/:/gi, "");
 
   /*fs.writeFile(
     fileName + ".json",
@@ -115,7 +120,9 @@ async function scrap(website) {
         const headers = response.headers();
         const url = response.url();
         objectsRequested.push({
-          url: url.length > 500 ? "Length exceeds limit" : url,
+          url: url.startsWith("data:image/")
+            ? "(Base64 Value of an Image)"
+            : url,
           type: headers["content-type"],
           cacheControl: headers["cache-control"],
           xCache: headers["x-cache"],
