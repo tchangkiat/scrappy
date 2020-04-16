@@ -1,8 +1,10 @@
 /*
   Config
 */
-const levelLimit = 1;
 const websites = ["http://localhost:3000"];
+const levelLimit = 1;
+const delayScrapPage = 1000;
+const delayScrapWebsite = 1000;
 const resultDirectory = "./results";
 
 const puppeteer = require("puppeteer");
@@ -23,9 +25,12 @@ const month_names = [
   "Dec",
 ];
 
-for (var website of websites) {
-  scrap(website);
-}
+(async () => {
+  for (var website of websites) {
+    await scrap(website);
+    await wait(delayScrapWebsite);
+  }
+})();
 
 async function scrap(website) {
   const browser = await puppeteer.launch();
@@ -169,7 +174,7 @@ async function scrap(website) {
 
         for (var link of links) {
           await scrapPage(pageq.origin + link, level + 1);
-          await wait(1000);
+          await wait(delayScrapPage);
         }
       }
 
