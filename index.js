@@ -41,8 +41,9 @@ async function scrap(website) {
     pages: [],
   };
   var pageMemo = ["/"];
+  const websiteq = new URL(website);
 
-  await scrapPage(website + "/");
+  await scrapPage();
   scrapResult.website = website;
   scrapResult.generatedOn = getCurrentDate() + ", " + getCurrentTime();
   scrapResult.totalPages = scrapResult.pages.length;
@@ -77,7 +78,7 @@ async function scrap(website) {
   );*/
 
   var csvContent =
-    "PageLevel,PageUrl,PageLoadTime,ObjectUrl,ObjectType,ObjectXCache,ObjectCacheControl\n";
+    "PageLevel,PagePath,PageLoadTime,ObjectUrl,ObjectType,ObjectXCache,ObjectCacheControl\n";
   for (let page of scrapResult.pages) {
     var pageInfo =
       '"' + page.level + '","' + page.url + '","' + page.loadTime + '"';
@@ -114,10 +115,12 @@ async function scrap(website) {
 
   await browser.close();
 
-  async function scrapPage(pageUrl, level = 0) {
+  async function scrapPage(pagePath = "/", level = 0) {
+    if (pagePath == "") return;
+    else if (!pagePath.startsWith("/")) pagePath = "/" + pagePath;
+
     try {
-      log("Scraping " + pageUrl);
-      const pageq = new URL(pageUrl);
+      log("Scraping " + pagePath);
 
       const page = await browser.newPage();
       var objectsRequested = [];
@@ -133,9 +136,11 @@ async function scrap(website) {
           xCache: headers["x-cache"],
         });
       });
-      const content = await page.goto(pageUrl).then(function () {
-        return page.content();
-      });
+      const content = await page
+        .goto(websiteq.origin + pagePath)
+        .then(function () {
+          return page.content();
+        });
 
       const title = $("title", content).text();
       const description = $("meta[name='description']", content).attr(
@@ -146,7 +151,7 @@ async function scrap(website) {
       scrapResult.pages.push({
         title: title,
         description: description,
-        url: pageUrl,
+        url: pagePath,
         objects: objectsRequested,
         loadTime:
           parseInt(perfData["timing"]["loadEventStart"]) -
@@ -160,10 +165,10 @@ async function scrap(website) {
           const link = $(value).attr("href");
           if (
             !(
-              pageMemo.includes(link) ||
+              inMemo(link) ||
               link == "#" ||
               links.includes(link) ||
-              isExternalUrl(link, pageq) ||
+              isExternalUrl(link, websiteq) ||
               includeListedExtension(link)
             )
           ) {
@@ -173,7 +178,7 @@ async function scrap(website) {
         });
 
         for (var link of links) {
-          await scrapPage(pageq.origin + link, level + 1);
+          await scrapPage(link, level + 1);
           await wait(delayScrapPage);
         }
       }
@@ -185,9 +190,23 @@ async function scrap(website) {
       return;
     }
   }
+
+  function inMemo(link) {
+    if (link == "" || link == undefined) return true;
+
+    return (
+      pageMemo.includes(link) ||
+      pageMemo.includes(link + "/") ||
+      pageMemo.includes("/" + link) ||
+      pageMemo.includes(link.substring(0, link.length - 1)) ||
+      pageMemo.includes(link.substring(1, link.length))
+    );
+  }
 }
 
-function isExternalUrl(url, pageq) {
+function isExternalUrl(url, websiteq) {
+  if (url == "" || url == undefined) return true;
+
   try {
     var match = url.match(
       /^([^:\/?#]+:)?(?:\/\/([^\/?#]*))?([^?#]+)?(\?[^#]*)?(#.*)?/
@@ -195,7 +214,7 @@ function isExternalUrl(url, pageq) {
     if (
       typeof match[1] === "string" &&
       match[1].length > 0 &&
-      match[1].toLowerCase() !== pageq.protocol
+      match[1].toLowerCase() !== websiteq.protocol
     )
       return true;
     if (
@@ -203,10 +222,10 @@ function isExternalUrl(url, pageq) {
       match[2].length > 0 &&
       match[2].replace(
         new RegExp(
-          ":(" + { "http:": 80, "https:": 443 }[pageq.protocol] + ")?$"
+          ":(" + { "http:": 80, "https:": 443 }[websiteq.protocol] + ")?$"
         ),
         ""
-      ) !== pageq.host
+      ) !== websiteq.host
     )
       return true;
     return false;
