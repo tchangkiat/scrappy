@@ -73,7 +73,7 @@ async function scrap(website) {
   );*/
 
   var csvContent =
-    "PageLevel,PagePath,PageLoadTime,ObjectUrl,ObjectType,ObjectXCache,ObjectCacheControl\n";
+    "PageLevel,PagePath,PageLoadTime,ObjectUrl,ObjectType,ObjectXCache,ObjectBrowserOrMemoryCache,ObjectCacheControl\n";
   for (let page of scrapResult.pages) {
     var pageInfo =
       '"' + page.level + '","' + page.url + '","' + page.loadTime + '"';
@@ -86,6 +86,8 @@ async function scrap(website) {
         object.type +
         '","' +
         object.xCache +
+        '","' +
+        object.browserOrMemoryCache +
         '","' +
         object.cacheControl +
         '"\n';
@@ -129,6 +131,7 @@ async function scrap(website) {
           type: headers["content-type"],
           cacheControl: headers["cache-control"],
           xCache: headers["x-cache"],
+          browserOrMemoryCache: response.fromCache(),
         });
       });
       const content = await page
