@@ -36,6 +36,7 @@ async function scrap(website) {
     pages: [],
   };
   var pageMemo = ["/"];
+  website = trimLink(website);
   const websiteq = new URL(website);
 
   await scrapPage();
@@ -114,7 +115,6 @@ async function scrap(website) {
 
   async function scrapPage(pagePath = "/", level = 0) {
     if (pagePath == "") return;
-    else if (!pagePath.startsWith("/")) pagePath = "/" + pagePath;
 
     try {
       log("Scraping " + pagePath);
@@ -160,10 +160,10 @@ async function scrap(website) {
       if (config.levelLimit === -1 || level < config.levelLimit) {
         var links = [];
         $("a", content).each(function (index, value) {
-          const link = $(value).attr("href");
+          const link = trimLink($(value).attr("href"));
           if (
             !(
-              inMemo(link) ||
+              pageMemo.includes(link) ||
               link == "#" ||
               links.includes(link) ||
               isExternalUrl(link, websiteq) ||
@@ -189,16 +189,21 @@ async function scrap(website) {
     }
   }
 
-  function inMemo(link) {
-    if (link == "" || link == undefined) return true;
+  function trimLink(link) {
+    if (link == "" || link == undefined) return link;
 
-    return (
-      pageMemo.includes(link) ||
-      pageMemo.includes(link + "/") ||
-      pageMemo.includes("/" + link) ||
-      pageMemo.includes(link.substring(0, link.length - 1)) ||
-      pageMemo.includes(link.substring(1, link.length))
-    );
+    while (link.endsWith("/")) {
+      link = link.substring(0, link.length - 1);
+    }
+
+    if (link.startsWith("http")) return link;
+
+    link = link.split("#")[0];
+    link = link.replace(/\/\//gi, "/");
+    if (!link.startsWith("/")) {
+      link = "/" + link;
+    }
+    return link;
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "levelLimit": 1,
-  "websites": ["http://localhost:3000"],
+  "websites": ["https://www.hlb.gov.sg/"],
   "delayScrapPage": 1000,
   "delayScrapWebsite": 1000
 }
