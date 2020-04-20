@@ -2,27 +2,15 @@ const puppeteer = require("puppeteer");
 const $ = require("cheerio");
 const fs = require("fs");
 const config = require("./config.json");
-const month_names = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+const common = require("./common");
+
 const resultDirectory = "./results";
 
 (async () => {
   if (configCheck()) {
     for (var website of config.websites) {
       await scrap(website);
-      await wait(2000);
+      await common.wait(2000);
     }
   }
 })();
@@ -41,7 +29,8 @@ async function scrap(website) {
 
   await scrapPage();
   scrapResult.website = website;
-  scrapResult.generatedOn = getCurrentDate() + ", " + getCurrentTime();
+  scrapResult.generatedOn =
+    common.getCurrentDate() + ", " + common.getCurrentTime();
   scrapResult.totalPages = scrapResult.pages.length;
   scrapResult.pages = scrapResult.pages.sort(function (a, b) {
     return a.level - b.level;
@@ -54,9 +43,9 @@ async function scrap(website) {
       .replace("www.", "")
       .replace(":", "-") +
     " - " +
-    getCurrentDate() +
+    common.getCurrentDate() +
     " - " +
-    getCurrentTime().replace(/:/gi, "");
+    common.getCurrentTime().replace(/:/gi, "");
 
   /*fs.writeFile(
     fileName + ".json",
@@ -64,10 +53,10 @@ async function scrap(website) {
     "utf8",
     function (err) {
       if (err) {
-        return log(err, 4);
+        return common.log(err, 4);
       }
 
-      log(
+      common.log(
         "Result has been saved to " + fileName + ".json"
       );
     }
@@ -104,10 +93,10 @@ async function scrap(website) {
     "utf8",
     function (err) {
       if (err) {
-        return log(err, 4);
+        return common.log(err, 4);
       }
 
-      log("Result has been saved to " + fileName + ".csv");
+      common.log("Result has been saved to " + fileName + ".csv");
     }
   );
 
@@ -117,7 +106,7 @@ async function scrap(website) {
     if (pagePath == "") return;
 
     try {
-      log("Scraping " + pagePath);
+      common.log("Scraping " + pagePath);
 
       const page = await browser.newPage();
       var objectsRequested = [];
@@ -177,14 +166,14 @@ async function scrap(website) {
 
         for (var link of links) {
           await scrapPage(link, level + 1);
-          await wait(1000);
+          await common.wait(1000);
         }
       }
 
       await page.close();
       return;
     } catch (err) {
-      log(err.message, 4);
+      common.log(err.message, 4);
       return;
     }
   }
@@ -211,17 +200,17 @@ function configCheck() {
   const prefix = "Configuration Check failed: ";
 
   if (!Number.isInteger(config.levelLimit)) {
-    log(prefix + "Level limit must be an Integer", 4);
+    common.log(prefix + "Level limit must be an Integer", 4);
     return false;
   }
 
   if (config.levelLimit < -1) {
-    log(prefix + "Level limit must be greater than or equal to -1", 4);
+    common.log(prefix + "Level limit must be greater than or equal to -1", 4);
     return false;
   }
 
   if (config.websites.length < 1) {
-    log(prefix + "Please indicate at least one website", 4);
+    common.log(prefix + "Please indicate at least one website", 4);
     return false;
   }
 
@@ -254,7 +243,7 @@ function isExternalUrl(url, websiteq) {
       return true;
     return false;
   } catch (err) {
-    log(err.message, 4);
+    common.log(err.message, 4);
     return true;
   }
 }
@@ -270,56 +259,5 @@ function includeListedExtension(url) {
     splitUrl[0].endsWith(".mov") ||
     splitUrl[0].endsWith(".pdf") ||
     splitUrl[0].endsWith(".zip")
-  );
-}
-
-function wait(milleseconds) {
-  return new Promise((resolve) => setTimeout(resolve, milleseconds));
-}
-
-function log(message, type = 1) {
-  const typeString =
-    type == 2
-      ? "WARNING"
-      : type == 3
-      ? "CRITICAL"
-      : type == 4
-      ? "ERROR"
-      : "INFO";
-  const logMessage =
-    "[" +
-    typeString +
-    " - " +
-    getCurrentDate() +
-    ", " +
-    getCurrentTime() +
-    "] " +
-    message;
-  console.log(logMessage);
-}
-
-function getCurrentDate() {
-  var d = new Date();
-  return (
-    (d.getDate() < 10 ? "0" : "") +
-    d.getDate() +
-    " " +
-    month_names[d.getMonth()] +
-    " " +
-    d.getFullYear()
-  );
-}
-
-function getCurrentTime() {
-  var d = new Date();
-  return (
-    (d.getHours() < 10 ? "0" : "") +
-    d.getHours() +
-    ":" +
-    (d.getMinutes() < 10 ? "0" : "") +
-    d.getMinutes() +
-    ":" +
-    (d.getSeconds() < 10 ? "0" : "") +
-    d.getSeconds()
   );
 }
