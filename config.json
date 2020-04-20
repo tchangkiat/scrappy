@@ -1,6 +1,4 @@
 {
   "levelLimit": 1,
-  "websites": ["http://localhost:3000"],
-  "delayScrapPage": 1000,
-  "delayScrapWebsite": 1000
+  "websites": ["https://localhost:443"]
 }

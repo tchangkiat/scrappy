@@ -22,7 +22,7 @@ const resultDirectory = "./results";
   if (configCheck()) {
     for (var website of config.websites) {
       await scrap(website);
-      await wait(config.delayScrapWebsite);
+      await wait(2000);
     }
   }
 })();
@@ -177,7 +177,7 @@ async function scrap(website) {
 
         for (var link of links) {
           await scrapPage(link, level + 1);
-          await wait(config.delayScrapPage);
+          await wait(1000);
         }
       }
 
@@ -222,26 +222,6 @@ function configCheck() {
 
   if (config.websites.length < 1) {
     log(prefix + "Please indicate at least one website", 4);
-    return false;
-  }
-
-  if (
-    !Number.isInteger(config.delayScrapPage) ||
-    !Number.isInteger(config.delayScrapWebsite)
-  ) {
-    log(
-      prefix + "delayScrapPage and/or delayScrapWebsite must be an Integer",
-      4
-    );
-    return false;
-  }
-
-  if (config.delayScrapPage < 1000 || config.delayScrapWebsite < 1000) {
-    log(
-      prefix +
-        "delayScrapPage and/or delayScrapWebsite must be greater than or equal to 1000",
-      4
-    );
     return false;
   }
 
