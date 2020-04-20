@@ -24,6 +24,7 @@ async function scrap(website) {
     pages: [],
   };
   var pageMemo = ["/"];
+  var concurrentScrap = [];
   website = trimLink(website);
   const websiteq = new URL(website);
 
@@ -165,15 +166,18 @@ async function scrap(website) {
         });
 
         for (var link of links) {
-          await scrapPage(link, level + 1);
-          await common.wait(1000);
+          concurrentScrap.push(scrapPage(link, level + 1));
+          if (concurrentScrap.length >= 2) {
+            await Promise.all(concurrentScrap);
+          }
+          await common.wait(500);
         }
       }
 
       await page.close();
-      return;
     } catch (err) {
       common.log(err.message, 4);
+    } finally {
       return;
     }
   }
