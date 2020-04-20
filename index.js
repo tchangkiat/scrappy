@@ -180,6 +180,7 @@ async function scrap(website) {
           concurrentScrap.push(scrapPage(link, level + 1));
           if (concurrentScrap.length >= 2) {
             await Promise.all(concurrentScrap);
+            concurrentScrap = [];
           }
           await common.wait(500);
         }
