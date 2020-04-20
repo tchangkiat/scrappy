@@ -64,10 +64,18 @@ async function scrap(website) {
   );*/
 
   var csvContent =
-    "PageLevel,PagePath,PageLoadTime,ObjectUrl,ObjectType,ObjectXCache,ObjectLocalCache,ObjectCacheControl\n";
+    "PageLevel,PagePath,PageTitle,PageLoadTime,ObjectUrl,ObjectType,ObjectStatus,ObjectXCache,ObjectLocalCache,ObjectCacheControl\n";
   for (let page of scrapResult.pages) {
     var pageInfo =
-      '"' + page.level + '","' + page.url + '","' + page.loadTime + '"';
+      '"' +
+      page.level +
+      '","' +
+      page.url +
+      '","' +
+      page.title +
+      '","' +
+      page.loadTime +
+      '"';
     for (let object of page.objects) {
       csvContent +=
         pageInfo +
@@ -75,6 +83,8 @@ async function scrap(website) {
         object.url +
         '","' +
         object.type +
+        '","' +
+        object.status +
         '","' +
         object.xCache +
         '","' +
@@ -119,6 +129,7 @@ async function scrap(website) {
             ? "(Base64 Value of an Image)"
             : url,
           type: headers["content-type"],
+          status: response.status(),
           cacheControl: headers["cache-control"],
           xCache: headers["x-cache"],
           localCache: response.fromCache(),
