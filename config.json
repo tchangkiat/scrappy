@@ -1,4 +1,4 @@
 {
   "levelLimit": 1,
-  "websites": ["https://localhost:443"]
+  "websites": ["https://localhost"]
 }

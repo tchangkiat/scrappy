@@ -24,7 +24,7 @@ async function scrap(website) {
     pages: [],
   };
   var pageMemo = ["/"];
-  website = trimLink(website);
+  website = trimLink(website, true);
   const websiteq = new URL(website);
 
   await scrapPage();
@@ -189,8 +189,11 @@ async function scrap(website) {
     }
   }
 
-  function trimLink(link) {
+  function trimLink(link, origin = false) {
     if (link == "" || link == undefined) return link;
+
+    link = link.split("#")[0];
+    if (!origin) link = link.replace(website, "");
 
     while (link.endsWith("/")) {
       link = link.substring(0, link.length - 1);
@@ -198,8 +201,6 @@ async function scrap(website) {
 
     if (link.startsWith("http")) return link;
 
-    link = link.split("#")[0];
-    link = link.replace(/\/\//gi, "/");
     if (!link.startsWith("/")) {
       link = "/" + link;
     }
