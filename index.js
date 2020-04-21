@@ -124,15 +124,14 @@ async function scrap(website) {
       const page = await browser.newPage();
 
       var objectsRequested = [];
+      var requestStart;
       await page.setRequestInterception(true);
-      page.on("request", (request) => {
-        const headers = request.headers();
-        headers["requestStart"] = Date.now();
-        request.continue({ headers });
+      await page.on("request", (request) => {
+        requestStart = Date.now();
+        request.continue();
       });
-      page.on("response", async (response) => {
+      await page.on("response", async (response) => {
         const headers = response.headers();
-        const reqHeaders = response.request().headers();
         const url = response.url();
         const buffer = await response.buffer();
         objectsRequested.push({
@@ -145,7 +144,7 @@ async function scrap(website) {
           xCache: headers["x-cache"],
           localCache: response.fromCache(),
           size: buffer.length,
-          timeTaken: Date.now() - reqHeaders["requestStart"],
+          timeTaken: Date.now() - requestStart,
         });
       });
 
