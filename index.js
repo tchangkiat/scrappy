@@ -124,10 +124,10 @@ async function scrap(website) {
       const page = await browser.newPage();
 
       var objectsRequested = [];
-      var requestStart;
+      var requestStartTime = {};
       await page.setRequestInterception(true);
-      await page.on("request", (request) => {
-        requestStart = Date.now();
+      page.on("request", (request) => {
+        requestStartTime[request.url()] = Date.now();
         request.continue();
       });
       await page.on("response", async (response) => {
@@ -144,7 +144,7 @@ async function scrap(website) {
           xCache: headers["x-cache"],
           localCache: response.fromCache(),
           size: buffer.length,
-          timeTaken: Date.now() - requestStart,
+          timeTaken: Date.now() - requestStartTime[url],
         });
       });
 
