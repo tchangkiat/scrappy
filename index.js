@@ -63,7 +63,7 @@ async function scrap(website) {
   );*/
 
   var csvContent =
-    "PageLevel,PagePath,PageTitle,PageLoadTime,ObjectUrl,ObjectType,ObjectStatus,ObjectXCache,ObjectLocalCache,ObjectCacheControl\n";
+    '"Page - Level","Page - Path","Page - Title","Page - Load Time","Object - Url","Object - Type","Object - Status","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size In KB"\n';
   for (let page of scrapResult.pages) {
     var pageInfo =
       '"' +
@@ -90,6 +90,8 @@ async function scrap(website) {
         object.localCache +
         '","' +
         object.cacheControl +
+        '","' +
+        object.size / 1000 +
         '"\n';
     }
   }
@@ -120,9 +122,10 @@ async function scrap(website) {
 
       const page = await browser.newPage();
       var objectsRequested = [];
-      page.on("response", (response) => {
+      page.on("response", async (response) => {
         const headers = response.headers();
         const url = response.url();
+        const buffer = await response.buffer();
         objectsRequested.push({
           url: url.startsWith("data:image/")
             ? "(Base64 Value of an Image)"
@@ -132,6 +135,7 @@ async function scrap(website) {
           cacheControl: headers["cache-control"],
           xCache: headers["x-cache"],
           localCache: response.fromCache(),
+          size: buffer.length,
         });
       });
       const content = await page
