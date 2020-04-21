@@ -275,7 +275,8 @@ function isExternalUrl(url, websiteq) {
 }
 
 function includeListedExtension(url) {
-  const splitUrl = url.split("?");
+  var splitUrl = url.split("#");
+  splitUrl = splitUrl[0].split("?");
   return (
     splitUrl[0].endsWith(".jpg") ||
     splitUrl[0].endsWith(".jpeg") ||
