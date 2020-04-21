@@ -63,7 +63,7 @@ async function scrap(website) {
   );*/
 
   var csvContent =
-    '"Page - Level","Page - Path","Page - Title","Page - Load Time","Object - Url","Object - Type","Object - Status","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size In KB"\n';
+    '"Page - Level","Page - Path","Page - Title","Page - Load Time","Object - Url","Object - Type","Object - Status","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Object - Time Taken (MS)"\n';
   for (let page of scrapResult.pages) {
     var pageInfo =
       '"' +
@@ -92,6 +92,8 @@ async function scrap(website) {
         object.cacheControl +
         '","' +
         object.size / 1000 +
+        '","' +
+        object.timeTaken +
         '"\n';
     }
   }
@@ -119,11 +121,18 @@ async function scrap(website) {
 
     try {
       common.log("Scraping " + pagePath);
-
       const page = await browser.newPage();
+
       var objectsRequested = [];
+      await page.setRequestInterception(true);
+      page.on("request", (request) => {
+        const headers = request.headers();
+        headers["requestStart"] = Date.now();
+        request.continue({ headers });
+      });
       page.on("response", async (response) => {
         const headers = response.headers();
+        const reqHeaders = response.request().headers();
         const url = response.url();
         const buffer = await response.buffer();
         objectsRequested.push({
@@ -136,8 +145,10 @@ async function scrap(website) {
           xCache: headers["x-cache"],
           localCache: response.fromCache(),
           size: buffer.length,
+          timeTaken: Date.now() - reqHeaders["requestStart"],
         });
       });
+
       const content = await page
         .goto(websiteq.origin + pagePath)
         .then(function () {
