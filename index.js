@@ -10,7 +10,7 @@ const resultDirectory = "./results";
   if (configCheck()) {
     for (var website of config.websites) {
       await scrap(website);
-      await common.wait(1000);
+      await common.wait(2000);
     }
   }
 })();
