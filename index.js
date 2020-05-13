@@ -191,7 +191,7 @@ async function scrap(website) {
 
         for (var link of links) {
           await scrapPage(link, level + 1);
-          await common.wait(250);
+          await common.wait(500);
         }
       }
 
