@@ -15,3 +15,5 @@ A script to scrap web pages for header and page object information
    - websites (array of string): list of websites to scrap
 
 4. Run "npm start" to start scraping
+
+5. Results can be found in the "results" folder
