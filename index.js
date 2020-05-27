@@ -94,7 +94,9 @@ async function scrap(website) {
         '","' +
         object.timeTaken +
         '","' +
-        object.remarks +
+        ((page.remarks ? page.remarks : "") +
+          (page.remarks && object.remarks ? "\n\n" : "") +
+          (object.remarks ? object.remarks : "")) +
         '"\n';
     }
   }
@@ -122,96 +124,116 @@ async function scrap(website) {
 
     common.log("Scraping " + pagePath);
     const page = await browser.newPage();
-
     var objectsRequested = [];
-    var requestStartTime = {};
-    await page.setRequestInterception(true);
-    page.on("request", (request) => {
-      requestStartTime[request.url()] = Date.now();
-      request.continue();
-    });
+    const scrapPageStartTime = Date.now();
 
-    await page.on("response", async (response) => {
-      const url = response.url();
-      const headers = response.headers();
-      try {
-        const buffer = await response.buffer();
-        objectsRequested.push({
-          url: url.startsWith("data:image/")
-            ? "(Base64 Value of an Image)"
-            : url,
-          type: headers["content-type"],
-          status: response.status(),
-          cacheControl: headers["cache-control"],
-          xCache: headers["x-cache"],
-          localCache: response.fromCache(),
-          size: buffer.length,
-          timeTaken: Date.now() - requestStartTime[url],
-          remarks: "",
-        });
-      } catch (err) {
-        objectsRequested.push({
-          url: url.startsWith("data:image/")
-            ? "(Base64 Value of an Image)"
-            : url,
-          type: headers["content-type"],
-          status: response.status(),
-          cacheControl: headers["cache-control"],
-          xCache: headers["x-cache"],
-          localCache: response.fromCache(),
-          size: "",
-          timeTaken: Date.now() - requestStartTime[url],
-          remarks: err.message,
-        });
-      }
-    });
-
-    const content = await page
-      .goto(websiteq.origin + pagePath)
-      .then(function () {
-        return page.content();
+    try {
+      var requestStartTime = {};
+      await page.setRequestInterception(true);
+      page.on("request", (request) => {
+        requestStartTime[request.url()] = Date.now();
+        request.continue();
       });
 
-    const title = $("title", content).text();
-    const description = $("meta[name='description']", content).attr("content");
-    const perfData = await page.evaluate(() => performance.toJSON());
-
-    scrapResult.pages.push({
-      title: title,
-      description: description,
-      url: pagePath,
-      objects: objectsRequested,
-      loadTime:
-        parseInt(perfData["timing"]["loadEventStart"]) -
-        parseInt(perfData["timing"]["navigationStart"]),
-      level: level,
-    });
-
-    if (config.levelLimit === -1 || level < config.levelLimit) {
-      var links = [];
-      $("a", content).each(function (index, value) {
-        const link = trimLink($(value).attr("href"));
-        if (
-          !(
-            pageMemo.includes(link) ||
-            link == "#" ||
-            links.includes(link) ||
-            isExternalUrl(link, websiteq) ||
-            includeListedExtension(link)
-          )
-        ) {
-          links.push(link);
-          pageMemo.push(link);
+      await page.on("response", async (response) => {
+        const url = response.url();
+        const headers = response.headers();
+        try {
+          const buffer = await response.buffer();
+          objectsRequested.push({
+            url: url.startsWith("data:image/")
+              ? "(Base64 Value of an Image)"
+              : url,
+            type: headers["content-type"],
+            status: response.status(),
+            cacheControl: headers["cache-control"]
+              ? headers["cache-control"].replace(/"/g, "'")
+              : "undefined",
+            xCache: headers["x-cache"],
+            localCache: response.fromCache(),
+            size: buffer.length,
+            timeTaken: Date.now() - requestStartTime[url],
+            remarks: "",
+          });
+        } catch (err) {
+          objectsRequested.push({
+            url: url.startsWith("data:image/")
+              ? "(Base64 Value of an Image)"
+              : url,
+            type: headers["content-type"],
+            status: response.status(),
+            cacheControl: headers["cache-control"]
+              ? headers["cache-control"].replace(/"/g, "'")
+              : "undefined",
+            xCache: headers["x-cache"],
+            localCache: response.fromCache(),
+            size: "",
+            timeTaken: Date.now() - requestStartTime[url],
+            remarks: "Object Error: " + err.message,
+          });
         }
       });
 
-      for (var link of links) {
-        await scrapPage(link, level + 1);
-        await common.wait(500);
-      }
-    }
+      const content = await page
+        .goto(websiteq.origin + pagePath)
+        .then(function () {
+          return page.content();
+        });
 
-    await page.close();
+      const title = $("title", content).text();
+      const description = $("meta[name='description']", content).attr(
+        "content"
+      );
+      const perfData = await page.evaluate(() => performance.toJSON());
+
+      scrapResult.pages.push({
+        title: title,
+        description: description,
+        url: pagePath,
+        objects: objectsRequested,
+        loadTime:
+          parseInt(perfData["timing"]["loadEventStart"]) -
+          parseInt(perfData["timing"]["navigationStart"]),
+        level: level,
+        remarks: "",
+      });
+
+      if (config.levelLimit === -1 || level < config.levelLimit) {
+        var links = [];
+        $("a", content).each(function (index, value) {
+          const link = trimLink($(value).attr("href"));
+          if (
+            !(
+              pageMemo.includes(link) ||
+              link == "#" ||
+              links.includes(link) ||
+              isExternalUrl(link, websiteq) ||
+              includeListedExtension(link)
+            )
+          ) {
+            links.push(link);
+            pageMemo.push(link);
+          }
+        });
+
+        for (var link of links) {
+          await scrapPage(link, level + 1);
+          await common.wait(500);
+        }
+      }
+    } catch (err) {
+      scrapResult.pages.push({
+        title: "",
+        description: "",
+        url: pagePath,
+        objects: objectsRequested,
+        loadTime: Date.now() - scrapPageStartTime,
+        level: level,
+        remarks: "Page Error: " + err.message,
+      });
+    } finally {
+      await page.close();
+    }
   }
 
   function trimLink(link, origin = false) {
