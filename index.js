@@ -23,6 +23,7 @@ async function scrap(website) {
     pages: [],
   };
   var pageMemo = ["/"];
+  var scrapCount = 0;
   website = trimLink(website, true);
   const websiteq = new URL(website);
 
@@ -121,6 +122,8 @@ async function scrap(website) {
 
   async function scrapPage(pagePath = "/", level = 0) {
     if (pagePath == "") return;
+    if (config.scrapBudget !== 0 && scrapCount >= config.scrapBudget) return;
+    scrapCount++;
 
     common.log("Scraping " + pagePath);
     const page = await browser.newPage();

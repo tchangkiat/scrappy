@@ -1,4 +1,5 @@
 {
   "levelLimit": 1,
+  "scrapBudget": 10,
   "websites": ["https://localhost"]
 }

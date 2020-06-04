@@ -10,7 +10,9 @@ A script to scrap web pages for header and page object information
 
 3. Edit "config.json" to state the level limit and websites to scrap
 
-   - levelLimit (integer): to restrict the level to scraping. E.g. level 0 = index/homepage only, level 1 = all links (to pages) found on the homepage, etc.
+   - levelLimit (integer): to restrict the level to scraping. E.g. level 0 = index / homepage only, level 1 = all links (to pages) found on the homepage, etc
+
+   - scrapBudget (integer): to restrict the number of pages to scrap in total. Indicate "0" to scrap all pages. This configuration is still restricted by levelLimit
 
    - websites (array of string): list of websites to scrap
 

@@ -1,7 +1,7 @@
 {
   "name": "scrappy",
   "version": "1.0.0",
-  "description": "A script to crawl web pages for header information",
+  "description": "A script to scrap web pages for header information",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
