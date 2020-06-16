@@ -47,76 +47,77 @@ async function scrap(website) {
     " - " +
     common.getCurrentTime().replace(/:/gi, "");
 
-  /*fs.writeFile(
-    fileName + ".json",
-    JSON.stringify(scrapResult),
-    "utf8",
-    function (err) {
-      if (err) {
-        return common.log(err, 4);
-      }
-
-      common.log(
-        "Result has been saved to " + fileName + ".json"
-      );
-    }
-  );*/
-
-  var csvContent =
-    '"Page - Level","Page - Path","Page - Title","Page - Load Time","Object - Url","Object - Type","Object - Status","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Object - Time Taken (MS)","Remarks"\n';
-  for (let page of scrapResult.pages) {
-    var pageInfo =
-      '"' +
-      page.level +
-      '","' +
-      page.url +
-      '","' +
-      page.title +
-      '","' +
-      page.loadTime +
-      '"';
-    for (let object of page.objects) {
-      csvContent +=
-        pageInfo +
-        ',"' +
-        object.url +
-        '","' +
-        object.type +
-        '","' +
-        object.status +
-        '","' +
-        object.xCache +
-        '","' +
-        object.localCache +
-        '","' +
-        object.cacheControl +
-        '","' +
-        object.size / 1000 +
-        '","' +
-        object.timeTaken +
-        '","' +
-        ((page.remarks ? page.remarks : "") +
-          (page.remarks && object.remarks ? "\n\n" : "") +
-          (object.remarks ? object.remarks : "")) +
-        '"\n';
-    }
-  }
-
   if (!fs.existsSync(resultDirectory)) {
     fs.mkdirSync(resultDirectory);
   }
-  fs.writeFile(
-    resultDirectory + "/" + fileName + ".csv",
-    csvContent,
-    "utf8",
-    function (err) {
-      if (err) {
-        return common.log(err, 4);
-      }
 
-      common.log("Result has been saved to " + fileName + ".csv");
+  if (config.output === "csv") {
+    var csvContent =
+      '"Page - Level","Page - Path","Page - Title","Page - Load Time","Object - Url","Object - Type","Object - Status","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Object - Time Taken (MS)","Remarks"\n';
+    for (let page of scrapResult.pages) {
+      var pageInfo =
+        '"' +
+        page.level +
+        '","' +
+        page.url +
+        '","' +
+        page.title +
+        '","' +
+        page.loadTime +
+        '"';
+      for (let object of page.objects) {
+        csvContent +=
+          pageInfo +
+          ',"' +
+          object.url +
+          '","' +
+          object.type +
+          '","' +
+          object.status +
+          '","' +
+          object.xCache +
+          '","' +
+          object.localCache +
+          '","' +
+          object.cacheControl +
+          '","' +
+          object.size / 1000 +
+          '","' +
+          object.timeTaken +
+          '","' +
+          ((page.remarks ? page.remarks : "") +
+            (page.remarks && object.remarks ? "\n\n" : "") +
+            (object.remarks ? object.remarks : "")) +
+          '"\n';
+      }
     }
-  );
+
+    fs.writeFile(
+      resultDirectory + "/" + fileName + ".csv",
+      csvContent,
+      "utf8",
+      function (err) {
+        if (err) {
+          return common.log(err, 4);
+        }
+
+        common.log("Result has been saved to " + fileName + ".csv");
+      }
+    );
+  } else {
+    fs.writeFile(
+      resultDirectory + "/" + fileName + ".json",
+      JSON.stringify(scrapResult),
+      "utf8",
+      function (err) {
+        if (err) {
+          return common.log(err, 4);
+        }
+
+        common.log("Result has been saved to " + fileName + ".json");
+      }
+    );
+  }
 
   await browser.close();
 

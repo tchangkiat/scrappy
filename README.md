@@ -14,6 +14,8 @@ A script to scrap web pages for header and page object information
 
    - scrapBudget (integer): to restrict the number of pages to scrap in total. Indicate "0" to scrap all pages. This configuration is still restricted by levelLimit
 
+   - output (string): Supports "csv" and "json"
+
    - websites (array of string): list of websites to scrap
 
 4. Run "npm start" to start scraping
