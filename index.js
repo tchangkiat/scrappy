@@ -8,13 +8,13 @@ const resultDirectory = "./results";
 (async () => {
   if (configCheck()) {
     for (var website of config.websites) {
-      await scrap(website);
+      await scrap(website, config.levelLimit);
       await common.wait(2000);
     }
   }
 })();
 
-async function scrap(website) {
+async function scrap(website, levelLimit) {
   const browser = await puppeteer.launch();
   var scrapResult = {
     website: "",
@@ -36,88 +36,7 @@ async function scrap(website) {
     return a.level - b.level;
   });
 
-  const fileName =
-    website
-      .replace("https://", "")
-      .replace("http://", "")
-      .replace("www.", "")
-      .replace(":", "-") +
-    " - " +
-    common.getCurrentDate() +
-    " - " +
-    common.getCurrentTime().replace(/:/gi, "");
-
-  if (!fs.existsSync(resultDirectory)) {
-    fs.mkdirSync(resultDirectory);
-  }
-
-  if (config.output === "csv") {
-    var csvContent =
-      '"Page - Level","Page - Path","Page - Title","Page - Load Time","Object - Url","Object - Type","Object - Status","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Object - Time Taken (MS)","Remarks"\n';
-    for (let page of scrapResult.pages) {
-      var pageInfo =
-        '"' +
-        page.level +
-        '","' +
-        page.url +
-        '","' +
-        page.title +
-        '","' +
-        page.loadTime +
-        '"';
-      for (let object of page.objects) {
-        csvContent +=
-          pageInfo +
-          ',"' +
-          object.url +
-          '","' +
-          object.type +
-          '","' +
-          object.status +
-          '","' +
-          object.xCache +
-          '","' +
-          object.localCache +
-          '","' +
-          object.cacheControl +
-          '","' +
-          object.size / 1000 +
-          '","' +
-          object.timeTaken +
-          '","' +
-          ((page.remarks ? page.remarks : "") +
-            (page.remarks && object.remarks ? "\n\n" : "") +
-            (object.remarks ? object.remarks : "")) +
-          '"\n';
-      }
-    }
-
-    fs.writeFile(
-      resultDirectory + "/" + fileName + ".csv",
-      csvContent,
-      "utf8",
-      function (err) {
-        if (err) {
-          return common.log(err, 4);
-        }
-
-        common.log("Result has been saved to " + fileName + ".csv");
-      }
-    );
-  } else {
-    fs.writeFile(
-      resultDirectory + "/" + fileName + ".json",
-      JSON.stringify(scrapResult),
-      "utf8",
-      function (err) {
-        if (err) {
-          return common.log(err, 4);
-        }
-
-        common.log("Result has been saved to " + fileName + ".json");
-      }
-    );
-  }
+  writeResultToFile(website, scrapResult);
 
   await browser.close();
 
@@ -202,7 +121,7 @@ async function scrap(website) {
         remarks: "",
       });
 
-      if (config.levelLimit === -1 || level < config.levelLimit) {
+      if (levelLimit === -1 || level < levelLimit) {
         var links = [];
         $("a", content).each(function (index, value) {
           const link = trimLink($(value).attr("href"));
@@ -272,12 +191,102 @@ function configCheck() {
     return false;
   }
 
+  if (config.output !== "csv" && config.output !== "json") {
+    common.log(prefix + "Only 'CSV' and 'JSON' file format are supported", 4);
+    return false;
+  }
+
   if (config.websites.length < 1) {
     common.log(prefix + "Please indicate at least one website", 4);
     return false;
   }
 
   return true;
+}
+
+function writeResultToFile(website, scrapResult) {
+  const fileName =
+    website
+      .replace("https://", "")
+      .replace("http://", "")
+      .replace("www.", "")
+      .replace(":", "-") +
+    " - " +
+    common.getCurrentDate() +
+    " - " +
+    common.getCurrentTime().replace(/:/gi, "");
+
+  if (!fs.existsSync(resultDirectory)) {
+    fs.mkdirSync(resultDirectory);
+  }
+
+  if (config.output === "csv") {
+    var csvContent =
+      '"Page - Level","Page - Path","Page - Title","Page - Load Time","Object - Url","Object - Type","Object - Status","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Object - Time Taken (MS)","Remarks"\n';
+    for (let page of scrapResult.pages) {
+      var pageInfo =
+        '"' +
+        page.level +
+        '","' +
+        page.url +
+        '","' +
+        page.title +
+        '","' +
+        page.loadTime +
+        '"';
+      for (let object of page.objects) {
+        csvContent +=
+          pageInfo +
+          ',"' +
+          object.url +
+          '","' +
+          object.type +
+          '","' +
+          object.status +
+          '","' +
+          object.xCache +
+          '","' +
+          object.localCache +
+          '","' +
+          object.cacheControl +
+          '","' +
+          object.size / 1000 +
+          '","' +
+          object.timeTaken +
+          '","' +
+          ((page.remarks ? page.remarks : "") +
+            (page.remarks && object.remarks ? "\n\n" : "") +
+            (object.remarks ? object.remarks : "")) +
+          '"\n';
+      }
+    }
+
+    fs.writeFile(
+      resultDirectory + "/" + fileName + ".csv",
+      csvContent,
+      "utf8",
+      function (err) {
+        if (err) {
+          return common.log(err, 4);
+        }
+
+        common.log("Result has been saved to " + fileName + ".csv");
+      }
+    );
+  } else {
+    fs.writeFile(
+      resultDirectory + "/" + fileName + ".json",
+      JSON.stringify(scrapResult),
+      "utf8",
+      function (err) {
+        if (err) {
+          return common.log(err, 4);
+        }
+
+        common.log("Result has been saved to " + fileName + ".json");
+      }
+    );
+  }
 }
 
 function isExternalUrl(url, websiteq) {

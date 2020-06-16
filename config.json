@@ -1,5 +1,5 @@
 {
-  "levelLimit": 1,
+  "levelLimit": 0,
   "scrapBudget": 10,
   "output": "csv",
   "websites": ["https://localhost"]
