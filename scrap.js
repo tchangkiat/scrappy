@@ -3,6 +3,8 @@ const $ = require("cheerio");
 const common = require("./common");
 
 async function scrap(website, levelLimit, budget) {
+  const websiteq = new URL(website);
+
   async function scrapPage(pagePath = "/", level = 0) {
     if (pagePath == "") return;
     if (budget !== 0 && scrapCount >= budget) return;
@@ -66,6 +68,9 @@ async function scrap(website, levelLimit, budget) {
           return page.content();
         });
 
+      // A delay is required at this point to cater for content loaded on demand (e.g. via AJAX or dynamic import)
+      await common.wait(500);
+
       const title = $("title", content).text();
       const description = $("meta[name='description']", content).attr(
         "content"
@@ -104,7 +109,6 @@ async function scrap(website, levelLimit, budget) {
 
         for (var link of links) {
           await scrapPage(link, level + 1);
-          await common.wait(500);
         }
       }
     } catch (err) {
@@ -132,7 +136,6 @@ async function scrap(website, levelLimit, budget) {
   var pageMemo = ["/"];
   var scrapCount = 0;
   website = trimLink(website, true);
-  const websiteq = new URL(website);
 
   await scrapPage();
   scrapResult.website = website;
