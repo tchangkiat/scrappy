@@ -64,7 +64,10 @@ async function scrap(website, levelLimit, budget) {
 
       const pageLoadStart = Date.now();
       const content = await page
-        .goto(websiteq.origin + pagePath, { waitUntil: "networkidle2" })
+        .goto(websiteq.origin + pagePath, {
+          waitUntil: "networkidle2",
+          timeout: 10000,
+        })
         .then(function () {
           return page.content();
         });
