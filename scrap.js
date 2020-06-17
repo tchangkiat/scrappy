@@ -62,26 +62,25 @@ async function scrap(website, levelLimit, budget) {
         }
       });
 
+      const pageLoadStart = Date.now();
       const content = await page
         .goto(websiteq.origin + pagePath, { waitUntil: "networkidle2" })
         .then(function () {
           return page.content();
         });
+      const pageLoadTime = Date.now() - pageLoadStart;
 
       const title = $("title", content).text();
       const description = $("meta[name='description']", content).attr(
         "content"
       );
-      const perfData = await page.evaluate(() => performance.toJSON());
 
       scrapResult.pages.push({
         title: title,
         description: description,
         url: pagePath,
         objects: objectsRequested,
-        loadTime:
-          parseInt(perfData["timing"]["loadEventStart"]) -
-          parseInt(perfData["timing"]["navigationStart"]),
+        loadTime: pageLoadTime,
         level: level,
         remarks: "",
       });
