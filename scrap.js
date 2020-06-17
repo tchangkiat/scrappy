@@ -40,7 +40,7 @@ async function scrap(website, levelLimit, budget) {
             xCache: headers["x-cache"],
             localCache: response.fromCache(),
             size: buffer.length,
-            timeTaken: Date.now() - requestStartTime[url],
+            loadTime: Date.now() - requestStartTime[url],
             remarks: "",
           });
         } catch (err) {
