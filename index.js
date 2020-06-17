@@ -62,7 +62,7 @@ function writeResultToFile(website, scrapResult) {
 
   if (config.output === "csv") {
     var csvContent =
-      '"Page - Level","Page - Path","Page - Title","Page - Load Time","Object - Url","Object - Type","Object - Status","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Object - Time Taken (MS)","Remarks"\n';
+      '"Page - Level","Page - Path","Page - Title","Page - Load Time (ms)","Object - Url","Object - Type","Object - Status","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Object - Load Time (ms)","Remarks"\n';
     for (let page of scrapResult.pages) {
       var pageInfo =
         '"' +
@@ -92,7 +92,7 @@ function writeResultToFile(website, scrapResult) {
           '","' +
           object.size / 1000 +
           '","' +
-          object.timeTaken +
+          object.loadTime +
           '","' +
           ((page.remarks ? page.remarks : "") +
             (page.remarks && object.remarks ? "\n\n" : "") +

@@ -56,20 +56,17 @@ async function scrap(website, levelLimit, budget) {
             xCache: headers["x-cache"],
             localCache: response.fromCache(),
             size: "",
-            timeTaken: Date.now() - requestStartTime[url],
+            loadTime: Date.now() - requestStartTime[url],
             remarks: "Object Error: " + err.message,
           });
         }
       });
 
       const content = await page
-        .goto(websiteq.origin + pagePath)
+        .goto(websiteq.origin + pagePath, { waitUntil: "networkidle2" })
         .then(function () {
           return page.content();
         });
-
-      // A delay is required at this point to cater for content loaded on demand (e.g. via AJAX or dynamic import)
-      await common.wait(500);
 
       const title = $("title", content).text();
       const description = $("meta[name='description']", content).attr(
@@ -109,6 +106,7 @@ async function scrap(website, levelLimit, budget) {
 
         for (var link of links) {
           await scrapPage(link, level + 1);
+          await common.wait(250);
         }
       }
     } catch (err) {
