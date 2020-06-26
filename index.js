@@ -2,17 +2,17 @@ const fs = require("fs");
 const config = require("./config.json");
 const common = require("./common");
 const resultDirectory = "./results";
-const { scrap } = require("./scrap.js");
+const { scrape } = require("./scrape.js");
 
 (async () => {
   if (configCheck()) {
     for (var website of config.websites) {
-      const scrapResult = await scrap(
+      const scrapeResult = await scrape(
         website,
         config.levelLimit,
-        config.scrapBudget
+        config.scrapeBudget
       );
-      writeResultToFile(website, scrapResult);
+      writeResultToFile(website, scrapeResult);
       await common.wait(2000);
     }
   }
@@ -44,7 +44,7 @@ function configCheck() {
   return true;
 }
 
-function writeResultToFile(website, scrapResult) {
+function writeResultToFile(website, scrapeResult) {
   const fileName =
     website
       .replace("https://", "")
@@ -63,7 +63,7 @@ function writeResultToFile(website, scrapResult) {
   if (config.output === "csv") {
     var csvContent =
       '"Page - Level","Page - Path","Page - Title","Page - Load Time (ms)","Object - Url","Object - Type","Object - Status","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Object - Load Time (ms)","Remarks"\n';
-    for (let page of scrapResult.pages) {
+    for (let page of scrapeResult.pages) {
       var pageInfo =
         '"' +
         page.level +
@@ -116,7 +116,7 @@ function writeResultToFile(website, scrapResult) {
   } else {
     fs.writeFile(
       resultDirectory + "/" + fileName + ".json",
-      JSON.stringify(scrapResult),
+      JSON.stringify(scrapeResult),
       "utf8",
       function (err) {
         if (err) {

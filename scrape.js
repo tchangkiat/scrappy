@@ -2,18 +2,18 @@ const puppeteer = require("puppeteer");
 const $ = require("cheerio");
 const common = require("./common");
 
-async function scrap(website, levelLimit, budget) {
+async function scrape(website, levelLimit, budget) {
   const websiteq = new URL(website);
 
-  async function scrapPage(pagePath = "/", level = 0) {
+  async function scrapePage(pagePath = "/", level = 0) {
     if (pagePath == "") return;
-    if (budget !== 0 && scrapCount >= budget) return;
-    scrapCount++;
+    if (budget !== 0 && scrapeCount >= budget) return;
+    scrapeCount++;
 
     common.log("Scraping " + pagePath);
     const page = await browser.newPage();
     var objectsRequested = [];
-    const scrapPageStartTime = Date.now();
+    const scrapePageStartTime = Date.now();
 
     try {
       var requestStartTime = {};
@@ -78,7 +78,7 @@ async function scrap(website, levelLimit, budget) {
         "content"
       );
 
-      scrapResult.pages.push({
+      scrapeResult.pages.push({
         title: title,
         description: description,
         url: pagePath,
@@ -107,12 +107,12 @@ async function scrap(website, levelLimit, budget) {
         });
 
         for (var link of links) {
-          await scrapPage(link, level + 1);
+          await scrapePage(link, level + 1);
           await common.wait(250);
         }
       }
     } catch (err) {
-      scrapResult.pages.push({
+      scrapeResult.pages.push({
         title: "",
         description: "",
         url: pagePath,
@@ -127,28 +127,28 @@ async function scrap(website, levelLimit, budget) {
   }
 
   const browser = await puppeteer.launch();
-  var scrapResult = {
+  var scrapeResult = {
     website: "",
     generatedOn: "",
     totalPages: 0,
     pages: [],
   };
   var pageMemo = ["/"];
-  var scrapCount = 0;
+  var scrapeCount = 0;
   website = trimLink(website, true);
 
-  await scrapPage();
-  scrapResult.website = website;
-  scrapResult.generatedOn =
+  await scrapePage();
+  scrapeResult.website = website;
+  scrapeResult.generatedOn =
     common.getCurrentDate() + ", " + common.getCurrentTime();
-  scrapResult.totalPages = scrapResult.pages.length;
-  scrapResult.pages = scrapResult.pages.sort(function (a, b) {
+  scrapeResult.totalPages = scrapeResult.pages.length;
+  scrapeResult.pages = scrapeResult.pages.sort(function (a, b) {
     return a.level - b.level;
   });
 
   await browser.close();
 
-  return scrapResult;
+  return scrapeResult;
 }
 
 function trimLink(link, website, origin = false) {
@@ -216,5 +216,5 @@ function includeListedExtension(url) {
 }
 
 module.exports = {
-  scrap,
+  scrape,
 };

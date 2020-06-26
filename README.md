@@ -1,6 +1,6 @@
 # scrappy
 
-A script to scrap web pages for header and page object information
+A script to scrape web pages for header and page object information
 
 ## How To Use
 
@@ -8,15 +8,15 @@ A script to scrap web pages for header and page object information
 
 2. Run "npm install" command
 
-3. Edit "config.json" to state the level limit and websites to scrap
+3. Edit "config.json" to state the level limit and websites to scrape
 
    - levelLimit (integer): to restrict the level to scraping. E.g. level 0 = index / homepage only, level 1 = all links (to pages) found on the homepage, etc
 
-   - scrapBudget (integer): to restrict the number of pages to scrap in total. Indicate "0" to scrap all pages. This configuration is still restricted by levelLimit
+   - scrapeBudget (integer): to restrict the number of pages to scrape in total. Indicate "0" to scrape all pages. This configuration is still restricted by levelLimit
 
    - output (string): Supports "csv" and "json"
 
-   - websites (array of string): list of websites to scrap
+   - websites (array of string): list of websites to scrape
 
 4. Run "npm start" to start scraping
 
