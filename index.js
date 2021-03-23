@@ -28,7 +28,7 @@ const { scrape } = require("./scrape.js");
         config.scrapeBudget
       );
       appendResult(fileName, scrapeResult);
-      await common.wait(9000);
+      await common.wait(3000);
     }
   }
 })();

@@ -75,7 +75,7 @@ async function scrape(website, levelLimit, budget) {
 
       const pageLoadStart = Date.now();
       await page.goto(pageUrl, {
-        waitUntil: "domcontentloaded",
+        waitUntil: "networkidle0",
         timeout: 8000,
       });
       const content = await page.content();
@@ -179,8 +179,8 @@ function trimLink(link, website, origin = false) {
 
   if (link.startsWith("http")) return link;
 
-  if (!link.startsWith("/")) {
-    link = "/" + link;
+  if (link.startsWith("/")) {
+    link = link.substring(1, link.length);
   }
   return link;
 }
