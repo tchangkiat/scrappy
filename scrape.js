@@ -6,6 +6,7 @@ async function scrape(website, levelLimit, budget) {
   const websiteq = new URL(website);
 
   async function scrapePage(pagePath = "/", level = 0) {
+    const pageUrl = websiteq.origin + pagePath;
     if (pagePath == "") return;
     if (budget !== 0 && scrapeCount >= budget) return;
     scrapeCount++;
@@ -26,14 +27,16 @@ async function scrape(website, levelLimit, budget) {
       await page.on("response", async (response) => {
         const url = response.url();
         const headers = response.headers();
+
         try {
           const buffer = await response.buffer();
           objectsRequested.push({
             url: url.startsWith("data:image/")
               ? "(Base64 Value of an Image)"
-              : url,
+              : new URL(url).pathname,
             type: headers["content-type"],
             status: response.status(),
+            csp: headers["content-security-policy"],
             cacheControl: headers["cache-control"]
               ? headers["cache-control"].replace(/"/g, "'")
               : "undefined",
@@ -47,9 +50,10 @@ async function scrape(website, levelLimit, budget) {
           objectsRequested.push({
             url: url.startsWith("data:image/")
               ? "(Base64 Value of an Image)"
-              : url,
+              : new URL(url).pathname,
             type: headers["content-type"],
             status: response.status(),
+            csp: headers["content-security-policy"],
             cacheControl: headers["cache-control"]
               ? headers["cache-control"].replace(/"/g, "'")
               : "undefined",
@@ -63,14 +67,18 @@ async function scrape(website, levelLimit, budget) {
       });
 
       const pageLoadStart = Date.now();
-      const content = await page
-        .goto(websiteq.origin + pagePath, {
-          waitUntil: "networkidle2",
-          timeout: 10000,
-        })
-        .then(function () {
-          return page.content();
-        });
+      await page.goto(pageUrl, {
+        waitUntil: "networkidle0",
+        timeout: 8000,
+      });
+      const content = await page.content();
+      const jquery_version = await page.evaluate(() => {
+        try {
+          return jQuery.fn.jquery;
+        } catch (err) {
+          return err.message;
+        }
+      });
       const pageLoadTime = Date.now() - pageLoadStart;
 
       const title = $("title", content).text();
@@ -81,10 +89,11 @@ async function scrape(website, levelLimit, budget) {
       scrapeResult.pages.push({
         title: title,
         description: description,
-        url: pagePath,
+        url: pageUrl,
         objects: objectsRequested,
         loadTime: pageLoadTime,
         level: level,
+        jquery: jquery_version,
         remarks: "",
       });
 
@@ -115,7 +124,7 @@ async function scrape(website, levelLimit, budget) {
       scrapeResult.pages.push({
         title: "",
         description: "",
-        url: pagePath,
+        url: websiteq.origin + pagePath,
         objects: objectsRequested,
         loadTime: Date.now() - scrapePageStartTime,
         level: level,
