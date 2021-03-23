@@ -6,14 +6,30 @@ const { scrape } = require("./scrape.js");
 
 (async () => {
   if (configCheck()) {
-    var scrapeResults = [];
+    const fileName =
+      common.getCurrentDate() +
+      " - " +
+      common.getCurrentTime().replace(/:/gi, "");
+    fs.appendFile(
+      resultDirectory + "/" + fileName + ".csv",
+      '"Level","Page","Title","Load Time (ms)","jQuery","Object - URL","Object - Type","Object - Status","Object - CSP","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Remarks"\n',
+      "utf8",
+      function (err) {
+        if (err) {
+          return common.log(err, 4);
+        }
+      }
+    );
+
     for (var website of config.websites) {
-      scrapeResults.push(
-        await scrape(website, config.levelLimit, config.scrapeBudget)
+      scrapeResult = await scrape(
+        website,
+        config.levelLimit,
+        config.scrapeBudget
       );
-      await common.wait(3000);
+      appendResult(fileName, scrapeResult);
+      await common.wait(9000);
     }
-    writeResultToFile(scrapeResults);
   }
 })();
 
@@ -38,61 +54,53 @@ function configCheck() {
   return true;
 }
 
-function writeResultToFile(scrapeResults) {
-  const fileName =
-    common.getCurrentDate() +
-    " - " +
-    common.getCurrentTime().replace(/:/gi, "");
-
+function appendResult(fileName, scrapeResult) {
   if (!fs.existsSync(resultDirectory)) {
     fs.mkdirSync(resultDirectory);
   }
 
-  var csvContent =
-    '"Level","URL","Title","Load Time (ms)","jQuery","Object - URL","Object - Type","Object - Status","Object - CSP","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Remarks"\n';
-  for (let scrapeResult of scrapeResults) {
-    for (let page of scrapeResult.pages) {
-      var pageInfo =
-        '"' +
-        page.level +
+  var csvContent = "";
+  for (let page of scrapeResult.pages) {
+    var pageInfo =
+      '"' +
+      page.level +
+      '","' +
+      page.url +
+      '","' +
+      page.title +
+      '","' +
+      page.loadTime +
+      '","' +
+      page.jquery +
+      '"';
+    for (let object of page.objects) {
+      csvContent +=
+        pageInfo +
+        ',"' +
+        object.url +
         '","' +
-        page.url +
+        object.type +
         '","' +
-        page.title +
+        object.status +
         '","' +
-        page.loadTime +
+        object.csp +
         '","' +
-        page.jquery +
-        '"';
-      for (let object of page.objects) {
-        csvContent +=
-          pageInfo +
-          ',"' +
-          object.url +
-          '","' +
-          object.type +
-          '","' +
-          object.status +
-          '","' +
-          object.csp +
-          '","' +
-          object.xCache +
-          '","' +
-          object.localCache +
-          '","' +
-          object.cacheControl +
-          '","' +
-          object.size / 1000 +
-          '","' +
-          ((page.remarks ? page.remarks : "") +
-            (page.remarks && object.remarks ? "\n\n" : "") +
-            (object.remarks ? object.remarks : "")) +
-          '"\n';
-      }
+        object.xCache +
+        '","' +
+        object.localCache +
+        '","' +
+        object.cacheControl +
+        '","' +
+        object.size / 1000 +
+        '","' +
+        ((page.remarks ? page.remarks : "") +
+          (page.remarks && object.remarks ? "\n\n" : "") +
+          (object.remarks ? object.remarks : "")) +
+        '"\n';
     }
   }
 
-  fs.writeFile(
+  fs.appendFile(
     resultDirectory + "/" + fileName + ".csv",
     csvContent,
     "utf8",
@@ -100,8 +108,6 @@ function writeResultToFile(scrapeResults) {
       if (err) {
         return common.log(err, 4);
       }
-
-      common.log("Result has been saved to " + fileName + ".csv");
     }
   );
 }

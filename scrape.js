@@ -5,9 +5,8 @@ const common = require("./common");
 async function scrape(website, levelLimit, budget) {
   const websiteq = new URL(website);
 
-  async function scrapePage(pagePath = "/", level = 0) {
-    const pageUrl = websiteq.origin + pagePath;
-    if (pagePath == "") return;
+  async function scrapePage(pagePath = "", level = 0) {
+    const pageUrl = websiteq + pagePath;
     if (budget !== 0 && scrapeCount >= budget) return;
     scrapeCount++;
 
