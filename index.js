@@ -49,7 +49,7 @@ function writeResultToFile(scrapeResults) {
   }
 
   var csvContent =
-    '"Level","Url","Title","Load Time (ms)","jQuery","Object - Path","Object - Type","Object - Status","Object - CSP","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Remarks"\n';
+    '"Level","URL","Title","Load Time (ms)","jQuery","Object - URL","Object - Type","Object - Status","Object - CSP","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Remarks"\n';
   for (let scrapeResult of scrapeResults) {
     for (let page of scrapeResult.pages) {
       var pageInfo =

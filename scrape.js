@@ -33,7 +33,7 @@ async function scrape(website, levelLimit, budget) {
           objectsRequested.push({
             url: url.startsWith("data:image/")
               ? "(Base64 Value of an Image)"
-              : new URL(url).pathname,
+              : url,
             type: headers["content-type"],
             status: response.status(),
             csp: headers["content-security-policy"],
@@ -50,7 +50,7 @@ async function scrape(website, levelLimit, budget) {
           objectsRequested.push({
             url: url.startsWith("data:image/")
               ? "(Base64 Value of an Image)"
-              : new URL(url).pathname,
+              : url,
             type: headers["content-type"],
             status: response.status(),
             csp: headers["content-security-policy"],
@@ -68,6 +68,7 @@ async function scrape(website, levelLimit, budget) {
 
       const pageLoadStart = Date.now();
       await page.goto(pageUrl, {
+        waitUntil: "domcontentloaded",
         timeout: 8000,
       });
       const content = await page.content();
