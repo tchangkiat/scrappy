@@ -1,6 +1,5 @@
 {
   "levelLimit": 0,
   "scrapeBudget": 10,
-  "output": "csv",
   "websites": ["https://localhost"]
 }

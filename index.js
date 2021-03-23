@@ -6,15 +6,14 @@ const { scrape } = require("./scrape.js");
 
 (async () => {
   if (configCheck()) {
+    var scrapeResults = [];
     for (var website of config.websites) {
-      const scrapeResult = await scrape(
-        website,
-        config.levelLimit,
-        config.scrapeBudget
+      scrapeResults.push(
+        await scrape(website, config.levelLimit, config.scrapeBudget)
       );
-      writeResultToFile(website, scrapeResult);
-      await common.wait(2000);
+      await common.wait(3000);
     }
+    writeResultToFile(scrapeResults);
   }
 })();
 
@@ -31,11 +30,6 @@ function configCheck() {
     return false;
   }
 
-  if (config.output !== "csv" && config.output !== "json") {
-    common.log(prefix + "Only 'CSV' and 'JSON' file format are supported", 4);
-    return false;
-  }
-
   if (config.websites.length < 1) {
     common.log(prefix + "Please indicate at least one website", 4);
     return false;
@@ -44,14 +38,8 @@ function configCheck() {
   return true;
 }
 
-function writeResultToFile(website, scrapeResult) {
+function writeResultToFile(scrapeResults) {
   const fileName =
-    website
-      .replace("https://", "")
-      .replace("http://", "")
-      .replace("www.", "")
-      .replace(":", "-") +
-    " - " +
     common.getCurrentDate() +
     " - " +
     common.getCurrentTime().replace(/:/gi, "");
@@ -60,9 +48,9 @@ function writeResultToFile(website, scrapeResult) {
     fs.mkdirSync(resultDirectory);
   }
 
-  if (config.output === "csv") {
-    var csvContent =
-      '"Page - Level","Page - Url","Page - Title","Page - Load Time (ms)","Page - jQuery","Object - Path","Object - Type","Object - Status","Object - CSP","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Remarks"\n';
+  var csvContent =
+    '"Level","Url","Title","Load Time (ms)","jQuery","Object - Path","Object - Type","Object - Status","Object - CSP","Object - X-Cache","Object - Local Cache","Object - Cache-Control","Object - Size (KB)","Remarks"\n';
+  for (let scrapeResult of scrapeResults) {
     for (let page of scrapeResult.pages) {
       var pageInfo =
         '"' +
@@ -102,31 +90,18 @@ function writeResultToFile(website, scrapeResult) {
           '"\n';
       }
     }
-
-    fs.writeFile(
-      resultDirectory + "/" + fileName + ".csv",
-      csvContent,
-      "utf8",
-      function (err) {
-        if (err) {
-          return common.log(err, 4);
-        }
-
-        common.log("Result has been saved to " + fileName + ".csv");
-      }
-    );
-  } else {
-    fs.writeFile(
-      resultDirectory + "/" + fileName + ".json",
-      JSON.stringify(scrapeResult),
-      "utf8",
-      function (err) {
-        if (err) {
-          return common.log(err, 4);
-        }
-
-        common.log("Result has been saved to " + fileName + ".json");
-      }
-    );
   }
+
+  fs.writeFile(
+    resultDirectory + "/" + fileName + ".csv",
+    csvContent,
+    "utf8",
+    function (err) {
+      if (err) {
+        return common.log(err, 4);
+      }
+
+      common.log("Result has been saved to " + fileName + ".csv");
+    }
+  );
 }

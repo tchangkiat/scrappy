@@ -11,7 +11,7 @@ async function scrape(website, levelLimit, budget) {
     if (budget !== 0 && scrapeCount >= budget) return;
     scrapeCount++;
 
-    common.log("Scraping " + pagePath);
+    common.log("Scraping " + pageUrl);
     const page = await browser.newPage();
     var objectsRequested = [];
     const scrapePageStartTime = Date.now();
@@ -68,7 +68,6 @@ async function scrape(website, levelLimit, budget) {
 
       const pageLoadStart = Date.now();
       await page.goto(pageUrl, {
-        waitUntil: "networkidle0",
         timeout: 8000,
       });
       const content = await page.content();
