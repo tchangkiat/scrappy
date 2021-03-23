@@ -32,6 +32,10 @@ async function scrape(website, levelLimit, budget) {
           objectsRequested.push({
             url: url.startsWith("data:image/")
               ? "(Base64 Value of an Image)"
+              : url.startsWith("data:font/")
+              ? "(Base64 Value of a Font)"
+              : url.startsWith("data:application/")
+              ? "(Base64 Value)"
               : url,
             type: headers["content-type"],
             status: response.status(),
@@ -49,6 +53,10 @@ async function scrape(website, levelLimit, budget) {
           objectsRequested.push({
             url: url.startsWith("data:image/")
               ? "(Base64 Value of an Image)"
+              : url.startsWith("data:font/")
+              ? "(Base64 Value of a Font)"
+              : url.startsWith("data:application/")
+              ? "(Base64 Value)"
               : url,
             type: headers["content-type"],
             status: response.status(),
