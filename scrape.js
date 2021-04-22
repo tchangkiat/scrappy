@@ -135,6 +135,7 @@ async function scrape(website, levelLimit, budget) {
         objects: objectsRequested,
         loadTime: Date.now() - scrapePageStartTime,
         level: level,
+        jquery: "",
         remarks: "Page Error: " + err.message,
       });
     } finally {
