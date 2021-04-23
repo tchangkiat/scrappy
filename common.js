@@ -64,9 +64,16 @@ const wait = (milleseconds) => {
   return new Promise((resolve) => setTimeout(resolve, milleseconds));
 };
 
+const endsWithAny = (suffixes, string) => {
+  return suffixes.some(function (suffix) {
+      return string.endsWith(suffix);
+  });
+}
+
 module.exports = {
   log,
   getCurrentDate,
   getCurrentTime,
   wait,
+  endsWithAny,
 };

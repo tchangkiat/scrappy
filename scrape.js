@@ -28,11 +28,7 @@ async function scrape(website, levelLimit, budget) {
         const headers = response.headers();
         
         var obj = {
-          url: url.startsWith("data:image/")
-            ? "(Base64 Value of an Image)"
-            : url.startsWith("data:font/")
-            ? "(Base64 Value of a Font)"
-            : url.startsWith("data:application/")
+          url: url.startsWith("data:")
             ? "(Base64 Value)"
             : url,
           type: headers["content-type"],
@@ -200,16 +196,7 @@ function isExternalUrl(url, websiteq) {
 function includeListedExtension(url) {
   var splitUrl = url.split("#");
   splitUrl = splitUrl[0].split("?");
-  return (
-    splitUrl[0].endsWith(".jpg") ||
-    splitUrl[0].endsWith(".jpeg") ||
-    splitUrl[0].endsWith(".png") ||
-    splitUrl[0].endsWith(".gif") ||
-    splitUrl[0].endsWith(".mp4") ||
-    splitUrl[0].endsWith(".mov") ||
-    splitUrl[0].endsWith(".pdf") ||
-    splitUrl[0].endsWith(".zip")
-  );
+  return common.endsWithAny([".jpg", ".jpeg", ".png", ".gif", ".mp4", ".mov", ".pdf", ".zip"], splitUrl[0]);
 }
 
 module.exports = {
