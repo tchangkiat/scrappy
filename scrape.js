@@ -26,50 +26,33 @@ async function scrape(website, levelLimit, budget) {
       await page.on("response", async (response) => {
         const url = response.url();
         const headers = response.headers();
-
+        
+        var obj = {
+          url: url.startsWith("data:image/")
+            ? "(Base64 Value of an Image)"
+            : url.startsWith("data:font/")
+            ? "(Base64 Value of a Font)"
+            : url.startsWith("data:application/")
+            ? "(Base64 Value)"
+            : url,
+          type: headers["content-type"],
+          status: response.status(),
+          csp: headers["content-security-policy"],
+          cacheControl: headers["cache-control"]
+            ? headers["cache-control"].replace(/"/g, "'")
+            : "undefined",
+          xCache: headers["x-cache"],
+          size: "",
+          loadTime: Date.now() - requestStartTime[url],
+          remarks: "",
+        }
         try {
           const buffer = await response.buffer();
-          objectsRequested.push({
-            url: url.startsWith("data:image/")
-              ? "(Base64 Value of an Image)"
-              : url.startsWith("data:font/")
-              ? "(Base64 Value of a Font)"
-              : url.startsWith("data:application/")
-              ? "(Base64 Value)"
-              : url,
-            type: headers["content-type"],
-            status: response.status(),
-            csp: headers["content-security-policy"],
-            cacheControl: headers["cache-control"]
-              ? headers["cache-control"].replace(/"/g, "'")
-              : "undefined",
-            xCache: headers["x-cache"],
-            localCache: response.fromCache(),
-            size: buffer.length,
-            loadTime: Date.now() - requestStartTime[url],
-            remarks: "",
-          });
+          obj['size'] = buffer.length;
         } catch (err) {
-          objectsRequested.push({
-            url: url.startsWith("data:image/")
-              ? "(Base64 Value of an Image)"
-              : url.startsWith("data:font/")
-              ? "(Base64 Value of a Font)"
-              : url.startsWith("data:application/")
-              ? "(Base64 Value)"
-              : url,
-            type: headers["content-type"],
-            status: response.status(),
-            csp: headers["content-security-policy"],
-            cacheControl: headers["cache-control"]
-              ? headers["cache-control"].replace(/"/g, "'")
-              : "undefined",
-            xCache: headers["x-cache"],
-            localCache: response.fromCache(),
-            size: "",
-            loadTime: Date.now() - requestStartTime[url],
-            remarks: "Object Error: " + err.message,
-          });
+          obj['remarks'] = "Object Error: " + err.message;
+        } finally {
+          objectsRequested.push(obj);
         }
       });
 
@@ -159,9 +142,6 @@ async function scrape(website, levelLimit, budget) {
   scrapeResult.generatedOn =
     common.getCurrentDate() + ", " + common.getCurrentTime();
   scrapeResult.totalPages = scrapeResult.pages.length;
-  scrapeResult.pages = scrapeResult.pages.sort(function (a, b) {
-    return a.level - b.level;
-  });
 
   await browser.close();
 
