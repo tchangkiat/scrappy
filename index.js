@@ -21,14 +21,14 @@ const { scrape } = require("./scrape.js");
       }
     );
 
-    for (var website of config.websites) {
+    for (var i = 0; i < config.websites.length; i++) {
       scrapeResult = await scrape(
-        website,
+        config.websites[i],
         config.levelLimit,
         config.scrapeBudget
       );
       appendResult(fileName, scrapeResult);
-      await common.wait(3000);
+      if (i < config.websites.length - 1) await common.wait(3000);
     }
   }
 })();

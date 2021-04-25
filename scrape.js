@@ -10,7 +10,9 @@ async function scrape(website, levelLimit, budget) {
       websiteq +
       (websiteq.toString().endsWith("/") ? "" : "/") +
       (websiteq.toString().includes("/" + pagePath) ? "" : pagePath);
-    if (budget !== 0 && scrapeCount >= budget) return;
+    if ((budget !== 0 && scrapeCount >= budget) || pageMemo.includes(pageUrl))
+      return;
+    pageMemo.push(pageUrl);
     scrapeCount++;
 
     common.log("Scraping " + pageUrl);
@@ -89,20 +91,18 @@ async function scrape(website, levelLimit, budget) {
         $("a", content).each(function (index, value) {
           const link = trimLink($(value).attr("href"), website);
           if (
-            pageMemo.includes(link) == false &&
             link != "#" &&
             links.includes(link) == false &&
             isExternalUrl(link, websiteq) == false &&
             includeListedExtension(link) == false
           ) {
             links.push(link);
-            pageMemo.push(link);
           }
         });
 
         for (var link of links) {
           await scrapePage(link, level + 1);
-          await common.wait(250);
+          await common.wait(500);
         }
       }
     } catch (err) {
@@ -128,7 +128,7 @@ async function scrape(website, levelLimit, budget) {
     totalPages: 0,
     pages: [],
   };
-  var pageMemo = ["/"];
+  var pageMemo = [];
   var scrapeCount = 0;
 
   await scrapePage();
