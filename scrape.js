@@ -6,10 +6,9 @@ async function scrape(website, levelLimit, budget) {
   const websiteq = new URL(website);
 
   async function scrapePage(pagePath = "", level = 0) {
-    const pageUrl =
-      websiteq +
-      (websiteq.toString().endsWith("/") ? "" : "/") +
-      (websiteq.toString().includes("/" + pagePath) ? "" : pagePath);
+    const pageUrl = pagePath.startsWith("http")
+      ? pagePath
+      : websiteq.origin + "/" + pagePath;
     if ((budget !== 0 && scrapeCount >= budget) || pageMemo.includes(pageUrl))
       return;
     pageMemo.push(pageUrl);
@@ -109,7 +108,7 @@ async function scrape(website, levelLimit, budget) {
       scrapeResult.pages.push({
         title: "",
         description: "",
-        url: websiteq.origin + pagePath,
+        url: pageUrl,
         objects: objectsRequested,
         loadTime: Date.now() - scrapePageStartTime,
         level: level,
@@ -131,7 +130,7 @@ async function scrape(website, levelLimit, budget) {
   var pageMemo = [];
   var scrapeCount = 0;
 
-  await scrapePage();
+  await scrapePage(website);
   scrapeResult.website = website;
   scrapeResult.generatedOn =
     common.getCurrentDate() + ", " + common.getCurrentTime();
