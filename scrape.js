@@ -17,7 +17,6 @@ async function scrape(website, levelLimit, budget) {
     common.log("Scraping " + pageUrl);
     const page = await browser.newPage();
     var objectsRequested = [];
-    const scrapePageStartTime = Date.now();
 
     try {
       var requestStartTime = {};
@@ -59,6 +58,8 @@ async function scrape(website, levelLimit, budget) {
         waitUntil: "networkidle0",
         timeout: 8000,
       });
+
+      const pageLoadTime = Date.now() - pageLoadStart;
       const content = await page.content();
       const jquery_version = await page.evaluate(() => {
         try {
@@ -67,8 +68,6 @@ async function scrape(website, levelLimit, budget) {
           return err.message;
         }
       });
-      const pageLoadTime = Date.now() - pageLoadStart;
-
       const title = $("title", content).text();
       const description = $("meta[name='description']", content).attr(
         "content"
@@ -110,7 +109,7 @@ async function scrape(website, levelLimit, budget) {
         description: "",
         url: pageUrl,
         objects: objectsRequested,
-        loadTime: Date.now() - scrapePageStartTime,
+        loadTime: 0,
         level: level,
         jquery: "",
         remarks: "Page Error: " + err.message,
