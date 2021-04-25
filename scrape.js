@@ -7,9 +7,9 @@ async function scrape(website, levelLimit, budget) {
 
   async function scrapePage(pagePath = "", level = 0) {
     const pageUrl =
-      (websiteq.origin.toString().endsWith("/")
-        ? websiteq.origin
-        : websiteq.origin + "/") + pagePath;
+      websiteq +
+      (websiteq.toString().endsWith("/") ? "" : "/") +
+      (websiteq.toString().includes("/" + pagePath) ? "" : pagePath);
     if (budget !== 0 && scrapeCount >= budget) return;
     scrapeCount++;
 
@@ -89,13 +89,11 @@ async function scrape(website, levelLimit, budget) {
         $("a", content).each(function (index, value) {
           const link = trimLink($(value).attr("href"), website);
           if (
-            !(
-              pageMemo.includes(link) ||
-              link == "#" ||
-              links.includes(link) ||
-              isExternalUrl(link, websiteq) ||
-              includeListedExtension(link)
-            )
+            pageMemo.includes(link) == false &&
+            link != "#" &&
+            links.includes(link) == false &&
+            isExternalUrl(link, websiteq) == false &&
+            includeListedExtension(link) == false
           ) {
             links.push(link);
             pageMemo.push(link);
