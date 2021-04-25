@@ -6,7 +6,10 @@ async function scrape(website, levelLimit, budget) {
   const websiteq = new URL(website);
 
   async function scrapePage(pagePath = "", level = 0) {
-    const pageUrl = websiteq + pagePath;
+    const pageUrl =
+      (websiteq.origin.toString().endsWith("/")
+        ? websiteq.origin
+        : websiteq.origin + "/") + pagePath;
     if (budget !== 0 && scrapeCount >= budget) return;
     scrapeCount++;
 
@@ -26,11 +29,9 @@ async function scrape(website, levelLimit, budget) {
       await page.on("response", async (response) => {
         const url = response.url();
         const headers = response.headers();
-        
+
         var obj = {
-          url: url.startsWith("data:")
-            ? "(Base64 Value)"
-            : url,
+          url: url.startsWith("data:") ? "(Base64 Value)" : url,
           type: headers["content-type"],
           status: response.status(),
           csp: headers["content-security-policy"],
@@ -41,12 +42,12 @@ async function scrape(website, levelLimit, budget) {
           size: "",
           loadTime: Date.now() - requestStartTime[url],
           remarks: "",
-        }
+        };
         try {
           const buffer = await response.buffer();
-          obj['size'] = buffer.length;
+          obj["size"] = buffer.length;
         } catch (err) {
-          obj['remarks'] = "Object Error: " + err.message;
+          obj["remarks"] = "Object Error: " + err.message;
         } finally {
           objectsRequested.push(obj);
         }
@@ -131,7 +132,6 @@ async function scrape(website, levelLimit, budget) {
   };
   var pageMemo = ["/"];
   var scrapeCount = 0;
-  website = trimLink(website, true);
 
   await scrapePage();
   scrapeResult.website = website;
@@ -144,11 +144,10 @@ async function scrape(website, levelLimit, budget) {
   return scrapeResult;
 }
 
-function trimLink(link, website, origin = false) {
+function trimLink(link, website) {
   if (link == "" || link == undefined) return link;
 
   link = link.split("#")[0];
-  if (!origin) link = link.replace(website, "");
 
   while (link.endsWith("/")) {
     link = link.substring(0, link.length - 1);
@@ -196,7 +195,10 @@ function isExternalUrl(url, websiteq) {
 function includeListedExtension(url) {
   var splitUrl = url.split("#");
   splitUrl = splitUrl[0].split("?");
-  return common.endsWithAny([".jpg", ".jpeg", ".png", ".gif", ".mp4", ".mov", ".pdf", ".zip"], splitUrl[0]);
+  return common.endsWithAny(
+    [".jpg", ".jpeg", ".png", ".gif", ".mp4", ".mov", ".pdf", ".zip"],
+    splitUrl[0]
+  );
 }
 
 module.exports = {
