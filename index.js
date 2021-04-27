@@ -12,7 +12,7 @@ const { scrape } = require("./scrape.js");
       common.getCurrentTime().replace(/:/gi, "");
     fs.appendFile(
       resultDirectory + "/" + fileName + ".csv",
-      '"Level","Page","Title","Load Time (ms)","jQuery","Object - URL","Object - Type","Object - Status","Object - CSP","Object - X-Cache","Object - Cache-Control","Object - Size (KB)","Remarks"\n',
+      '"Level","Page","Title","Load Time (ms)","jQuery","Object - URL","Object - Type","Object - Status","Object - CSP","Object - X-Cache","Object - Cache-Control","Object - Size (KB)","Remarks","Is Homepage?"\n',
       "utf8",
       function (err) {
         if (err) {
@@ -103,6 +103,11 @@ function appendResult(fileName, scrapeResult) {
         ((page.remarks ? page.remarks : "") +
           (page.remarks && object.remarks ? "\n\n" : "") +
           (object.remarks ? object.remarks : "")) +
+        '","' +
+        ((page.url == object.url || page.url + "/" == object.url) &&
+        object.status == 200
+          ? "Yes"
+          : "No") +
         '"\n';
     }
   }
