@@ -22,6 +22,15 @@ const { scrape } = require("./scrape.js");
     );
 
     for (var i = 0; i < config.websites.length; i++) {
+      common.log(
+        "----- Website (" +
+          (i + 1) +
+          "/" +
+          config.websites.length +
+          "): " +
+          config.websites[i] +
+          " -----"
+      );
       scrapeResult = await scrape(
         config.websites[i],
         config.levelLimit,
